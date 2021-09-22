@@ -31,28 +31,29 @@ class ViewController: UIViewController {
         
         
         // add in graphs for display
-//        graph?.addGraph(withName: "fft",
-//                        shouldNormalize: true,
-//                        numPointsInGraph: AudioConstants.AUDIO_BUFFER_SIZE/2)
+        graph?.addGraph(withName: "fft",
+                        shouldNormalize: true,
+                        numPointsInGraph: AudioConstants.AUDIO_BUFFER_SIZE/2)
  
 //      Removed to fit graphs better
 //        graph?.addGraph(withName: "fft_zoomed",
 //                        shouldNormalize: true,
 //                        numPointsInGraph: AudioConstants.AUDIO_BUFFER_SIZE/20)
         
-//        graph?.addGraph(withName: "time",
-//            shouldNormalize: false,
-//            numPointsInGraph: AudioConstants.AUDIO_BUFFER_SIZE)
-        
         graph?.addGraph(withName: "equalize",
+            shouldNormalize: true,
+            numPointsInGraph: 20)
+        
+        graph?.addGraph(withName: "time",
             shouldNormalize: false,
-            numPointsInGraph: AudioConstants.AUDIO_BUFFER_SIZE/2)
+            numPointsInGraph: AudioConstants.AUDIO_BUFFER_SIZE)
         
         
         
         // start up the audio model here, querying microphone
-        audio.startMicrophoneProcessing(withFps: 10)  // How often should FFT update the properties
+//        audio.startMicrophoneProcessing(withFps: 10)  // How often should FFT update the properties
 
+        audio.startProcessingAudioFileForPlayback(withFps: 10)
         audio.play()
         
         // run the loop for updating the graph peridocially
@@ -66,25 +67,18 @@ class ViewController: UIViewController {
     // periodically, update the graph with refreshed FFT Data
     @objc
     func updateGraph(){
-//        self.graph?.updateGraph(
-//            data: self.audio.fftData,
-//            forKey: "fft"
-//        )
-//        
-       //      Removed to fit graphs better
-//        let zoomedArray:[Float] = Array.init(self.audio.fftData[20...])
-//        self.graph?.updateGraph( // no computation needed it knows it needs fewer points
-//            data: zoomedArray,
-//            forKey: "fft_zoomed"
-//        )
         
-//        self.graph?.updateGraph(
-//            data: self.audio.timeData,
-//            forKey: "time"
-//        )
+        self.graph?.updateGraph(
+            data: self.audio.timeData,
+            forKey: "time"
+        )
         
         self.graph?.updateGraph(
             data: self.audio.fftData,
+            forKey: "fft"
+       )
+        self.graph?.updateGraph(
+            data: self.audio.equalize,
             forKey: "equalize"
         )
     }

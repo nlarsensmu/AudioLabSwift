@@ -1,0 +1,6 @@
+If you made the FFT Magnitude Buffer a larger array, would your program still work properly? If yes whY? If not, what would you need to change?
+The sound works fine, however the graphs are off, specifically the time graph has a long flat line on it before the data starts. To fix this you would change the BUFFER_SIZE everywhere to match the desired size of FFT maginitude data.
+
+Is pausing the audioManager object better than deallocating it when the view has disappeared?
+
+In our case, all of the audioManager would end up being the same if we were to deallocate it and reallocate it each time. Therefore in this case it makes since not to clean it up when you leave, if there was some reason we thought the audioManager would have to recompute a lot of it's members when we switch screans we might want to deallocate it. Another reason to have stricter clean up if we thought the user might do a lot of things afterwards, but again in this case the only option is to go back to using the audio model we have created.

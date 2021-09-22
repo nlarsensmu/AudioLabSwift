@@ -29,6 +29,17 @@ class AudioModel {
         equalize = Array.init(repeating: 0.0, count: 20)
     }
     
+    func startProcessingAudioFileForPlayback(withFps:Double) {
+        if let manager = self.audioManager, let fileReader = self.fileReader {
+            manager.outputBlock = self.handleSpeakerWithAudioFile
+            fileReader.play()
+        }
+        Timer.scheduledTimer(timeInterval: 1.0/withFps, target: self,
+                             selector: #selector(self.runEveryInterval),
+                             userInfo: nil,
+                             repeats: true)
+    }
+    
     // public function for starting processing of microphone data
     func startMicrophoneProcessing(withFps:Double){
         // setup the microphone to copy to circualr buffer
@@ -79,12 +90,24 @@ class AudioModel {
     
     //==========================================
     // MARK: Private Methods
-    // NONE for this model
+    private lazy var fileReader:AudioFileReader? = {
+        if let url = Bundle.main.url(forResource: "satisfaction", withExtension: "mp3") {
+            var tmpFileReader:AudioFileReader? = AudioFileReader.init(audioFileURL: url, samplingRate: Float(audioManager!.samplingRate), numChannels: audioManager!.numInputChannels)
+            
+            tmpFileReader!.currentTime = 0.0
+            print("Audio file successfully loaded for \(url)")
+            return tmpFileReader
+        }else {
+            print("Could not initilize audio input file")
+            return nil
+        }
+    }()
     
     //==========================================
     // MARK: Model Callback Methods
     @objc
     private func runEveryInterval(){
+        
         if inputBuffer != nil { /* If it is not nill, some float data has been added to the array */
             // copy time data to swift array
             self.inputBuffer!.fetchFreshData(&timeData,
@@ -95,20 +118,11 @@ class AudioModel {
                                          andCopydBMagnitudeToBuffer: &fftData)
             
             // now take equalized FFT
-//            let width:Int = BUFFER_SIZE/2/20 // The width of each segment
-//            let dH = 441000/BUFFER_SIZE/2
-//            let di = dH*BUFFER_SIZE/2/20 //Change in frequency for the i loop variable
-//            if verbose {
-//                print("dh: \(dH) di: \(di) BUFFER_SIZE: \(BUFFER_SIZE)")
-//            }
-//            for i in 0...19 {
-//                let start:Int = i*width, end = (i*width + width) - 1
-//
-//                self.equalize[i] = vDSP.maximum(fftData[start...end])
-//                if verbose {
-//                    print("i: \(i) fftData[\(start)]: \(fftData[start]) fftData[\(end)]: \(fftData[end]) equ: \(self.equalize[i])" +
-//                    " low frequency \(di*i)")
-//                }
+            let width:Int = BUFFER_SIZE/2/20 // The width of each segmentZE: \(BUFFER_SIZE)")
+            for i in 0...19 {
+                let start:Int = i*width, end = (i*width + width) - 1
+
+                self.equalize[i] = vDSP.maximum(fftData[start...end])
 //                self.equalize[i] = fftData[start]
 //                var max:Float = fftData[start]
 //                for val in fftData[start...end] {
@@ -116,12 +130,7 @@ class AudioModel {
 //                        max = val
 //                    }
 //                }
-//                print("min \(start) \(end) \(max)")
-//                self.equalize[i] = max
-//            }
-//            self.equalize = Array(fftData[1...20])
-//            equalize = Array(self.fftData)
-            
+            }
             // at this point, we have saved the data to the arrays:
             //   timeData: the raw audio samples
             //   fftData:  the FFT of those same samples
@@ -139,5 +148,10 @@ class AudioModel {
         self.inputBuffer?.addNewFloatData(data, withNumSamples: Int64(numFrames))
     }
     
-    
+    private func handleSpeakerWithAudioFile(data:Optional<UnsafeMutablePointer<Float>>, numFrames:UInt32, numChannels: UInt32) {
+        if let file = self.fileReader {
+            file.retrieveFreshAudio(data, numFrames: numFrames, numChannels: numChannels)
+            self.inputBuffer?.addNewFloatData(data, withNumSamples: Int64(numFrames))
+        }
+    }
 }
