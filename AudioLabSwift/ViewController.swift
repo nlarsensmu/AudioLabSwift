@@ -14,7 +14,7 @@ import Metal
 
 
 class ViewController: UIViewController {
-
+    var times:Int = 0
     struct AudioConstants{
         static let AUDIO_BUFFER_SIZE = 1024*4
     }
@@ -67,7 +67,17 @@ class ViewController: UIViewController {
     // periodically, update the graph with refreshed FFT Data
     @objc
     func updateGraph(){
-        
+        if self.times == 10
+        {
+            let maxes = self.audio.windowedMaxFor(nums: audio.fftData, windowSize: 3)
+            self.times = self.times + 1
+            print(maxes)
+            let max2 = self.audio.getTopIndices(indices: maxes, nums: audio.fftData)
+            print(max2)
+        }
+        else {
+            self.times = self.times + 1
+        }
         self.graph?.updateGraph(
             data: self.audio.timeData,
             forKey: "time"

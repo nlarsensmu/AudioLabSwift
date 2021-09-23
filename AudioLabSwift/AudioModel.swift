@@ -154,4 +154,52 @@ class AudioModel {
             self.inputBuffer?.addNewFloatData(data, withNumSamples: Int64(numFrames))
         }
     }
+    
+    func windowedMaxFor(nums:[Float], windowSize:Int) -> [Int] {
+          var maxLength = 0
+          var max = nums[0]
+          var maxIndicies: [Int] = [Int].init()
+          for i in 0...nums.count - windowSize - 1{
+              if let currMax = nums[i...i+windowSize].max(){
+                  if currMax == max{
+                      max = currMax
+                      maxLength += 1
+                      if (maxLength == windowSize){
+                          maxIndicies.append(i - windowSize + 1)
+                      }
+                  }
+                  else{
+                      maxLength = 0
+                      max = currMax
+                  }
+              }
+          }
+        return maxIndicies
+    }
+    func getTopIndices(indices:[Int], nums:[Float]) -> [Int]{
+        var maxIndex1 = indices[0]
+        var maxIndex2 = indices[0]
+        if nums[indices[1]] > nums[maxIndex1] {
+            maxIndex1 = indices[1]
+        }
+        else {
+            maxIndex2 = indices[1]
+        }
+        for i in 2...indices.count - 1{
+            //new number is greater than both
+            if nums[indices[i]] > nums[maxIndex1]{
+                maxIndex2 = maxIndex1
+                maxIndex1 = indices[i]
+            }
+            //just greate than the second
+            else if nums[indices[i]] > nums[maxIndex2]{
+                maxIndex2 = indices[i]
+            }
+        }
+        var returnIndices = [Int].init(repeating: 0, count: 2)
+        returnIndices[0] = maxIndex1
+        returnIndices[1] = maxIndex2
+        
+        return returnIndices
+    }
 }
